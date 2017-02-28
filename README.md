@@ -1,2 +1,3 @@
 # FarBox
-backup for my blog
+
+This repository is used to back up my blog. 

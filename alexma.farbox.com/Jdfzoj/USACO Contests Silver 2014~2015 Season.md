@@ -1,0 +1,903 @@
+Title: USACO Contests Silver 2014~2015 Season
+[TOC]
+
+# 2911 Piggyback
+
+[题目链接](https://oj.jdfz.com.cn/oldoj/problem.php?id=2911)
+
+## Description
+
+给定一个N个点M条边的无向图，其中Bessie在1号点，Elsie在2号点，它们的目的地为N号点。Bessie每经过一条边需要消耗B点能量，Elsie每经过一条边需要消耗E点能量。当它们相遇时，它们可以一起行走，此时它们每经过一条边需要消耗P点能量。求它们两个到达N号点时最少消耗多少能量？
+
+## Solution
+
+易知,最后的答案为
+
+$min(B*dis_{Bessie}+E*dis_{Elsie}+P*dis_{Together})$
+
+对于$Bessie,Elsie$和终点求最短路后枚举每个点更新答案即可
+
+``` c++
+#include <stdio.h>
+#include <functional>
+#include <algorithm>
+#include <string.h>
+using namespace std;
+const int maxn=40010;
+typedef pair<int,int> point;
+point heap[maxn<<1];
+int b,e,p,n,m;
+ 
+int to[maxn<<1];
+int next[maxn<<1];
+int head[maxn];
+int tot;
+void add(int x,int y)
+{
+    to[++tot]=y;
+    next[tot]=head[x];
+    head[x]=tot;
+    to[++tot]=x;
+    next[tot]=head[y];
+    head[y]=tot;
+}
+ 
+int f[4][maxn];
+int size;
+bool v[maxn];
+void dijkstra()
+{
+    memset(f,0x3f,sizeof(f));
+    memset(v,0,sizeof(v));
+    heap[++size]=point(0,1);
+    f[1][1]=0;
+    while(size)
+    {
+        int x=heap[1].second;
+        pop_heap(heap+1,heap+size--+1,greater<point>());
+        if(v[x])
+            continue;
+        v[x]=true;
+        for(int i=head[x];i;i=next[i])
+            if(f[1][to[i]]>f[1][x]+1)
+            {
+                f[1][to[i]]=f[1][x]+1;
+                heap[++size]=point(f[1][to[i]],to[i]);
+                push_heap(heap+1,heap+size+1,greater<point>());
+            }
+    }
+ 
+    memset(v,0,sizeof(v));
+    heap[++size]=point(0,2);
+    f[2][2]=0;
+    while(size)
+    {
+        int x=heap[1].second;
+        pop_heap(heap+1,heap+size--+1,greater<point>());
+        if(v[x])
+            continue;
+        v[x]=true;
+        for(int i=head[x];i;i=next[i])
+            if(f[2][to[i]]>f[2][x]+1)
+            {
+                f[2][to[i]]=f[2][x]+1;
+                heap[++size]=point(f[2][to[i]],to[i]);
+                push_heap(heap+1,heap+size+1,greater<point>());
+            }
+    }
+ 
+    memset(v,0,sizeof(v));
+    heap[++size]=point(0,n);
+    f[3][n]=0;
+    while(size)
+    {
+        int x=heap[1].second;
+        pop_heap(heap+1,heap+size--+1,greater<point>());
+        if(v[x])
+            continue;
+        v[x]=true;
+        for(int i=head[x];i;i=next[i])
+            if(f[3][to[i]]>f[3][x]+1)
+            {
+                f[3][to[i]]=f[3][x]+1;
+                heap[++size]=point(f[3][to[i]],to[i]);
+                push_heap(heap+1,heap+size+1,greater<point>());
+            }
+    }
+}
+int ans=~0u>>1;
+int main()
+{
+    scanf("%d%d%d%d%d",&b,&e,&p,&n,&m);
+    for(int i=1;i<=m;i++)
+    {
+        static int x,y;
+        scanf("%d%d",&x,&y);
+        add(x,y);
+    }
+    dijkstra();
+    for(int i=1;i<=n;i++)
+        ans=min(ans,b*f[1][i]+e*f[2][i]+p*f[3][i]);
+    printf("%d\n",ans);
+}
+```
+
+# 2912 Marathon
+
+[题目链接](https://oj.jdfz.com.cn/oldoj/problem.php?id=2912)
+
+## Description
+
+在二维平面上有N个点，从(x1,y1)到(x2,y2)的代价为|x1-x2|+|y1-y2|。
+
+求从1号点出发，按从1到N的顺序依次到达每个点的最小总代价。
+
+你有K次机会可以跳过某个点，不允许跳过1号点或N号点。
+
+## Solution
+
+动态规划
+
+令$f[i][j]$表示在第$i$个点**之前**使用了$j$次跳跃的最小价值
+
+$f[i][j]=min\{f[i-k-1][j-k]+dis(i-k-1,i)\}$
+
+``` c++
+#include <stdio.h>
+#include <string.h>
+#include <algorithm>
+#define dis(a,b) (abs(p[(a)].first-p[(b)].first)+abs(p[(a)].second-p[(b)].second))
+using namespace std;
+const int maxn=510;
+int n,k;
+typedef pair<int,int> point;
+point p[maxn];
+int e=505;
+int ans;
+int f[maxn][maxn];
+int main()
+{
+    scanf("%d%d",&n,&k);
+    for(int i=1;i<=n;i++)
+        scanf("%d%d",&p[i].first,&p[i].second);
+    memset(f,0x3f,sizeof(f));
+    f[1][0]=0;
+    for(int i=2;i<=n;i++)
+        for(int j=0;j<=i-2&&j<=::k;j++)
+            for(int k=0;k<=j;k++)
+                f[i][j]=min(f[i][j],f[i-k-1][j-k]+dis(i-k-1,i));
+    printf("%d\n",f[n][min(n-2,k)]);
+}
+ 
+```
+
+# 2913 Cow Jog
+
+[题目链接](https://oj.jdfz.com.cn/oldoj/problem.php?id=2913)
+
+## Description
+
+给出N头牛，每头牛有自己的初始位置及奔跑的速度。它们要跑T分钟，现在不希望他们的跑的过程中出现“撞车”即跑到同一个点上，因而要将道路分成若干个跑道，问至少要多少个跑道。
+
+## Solution
+
+乱搞
+
+直接按位置从后向前枚举一下能否相撞即可
+
+``` c++
+#include <stdio.h>
+#include <algorithm>
+using namespace std;
+const int maxn=100010;
+int n;
+int ans;
+int pos[maxn];
+int s[maxn];
+long long t;
+int last;
+int main()
+{
+    scanf("%d%lld",&n,&t);
+    for(int i=1;i<=n;i++)
+        scanf("%d%d",&pos[i],&s[i]);
+    pos[n+1]=s[n+1]=~0u>>1;
+    last=n+1;
+    for(int i=n;i;i--)
+    {
+        if(pos[i]+s[i]*t<pos[last]+s[last]*t)
+            ++ans,last=i;
+    }
+    printf("%d\n",ans);
+}
+```
+
+# 2923 Stampede
+
+[题目链接](https://oj.jdfz.com.cn/oldoj/problem.php?id=2923)
+
+## Description
+
+PoPoQQQ站在原点上向y轴正半轴看，然后有一群羊驼从他眼前飞过。这些羊驼初始都在第二象限，尾巴在(Xi,Yi)，头在(Xi+1,Yi)，每Ci秒向右走一个单位。 PoPoQQQ能看见一匹羊驼当且仅当它身体任意某部位x坐标为0时，没有其它y坐标小于此羊驼的羊驼身体某部位x坐标为0。 问PoPoQQQ能看见几匹羊驼？
+
+## Solution
+
+[线段树判区间覆盖](http://blog.csdn.net/vmurder/article/details/44066313)?
+
+把关键的时间点排序用set维护一下当前的线段出现前,出现时,出现后的时间
+
+每次找到两个点中间的区间,如果不为空,则没有被覆盖,清空区间并更新答案即可
+
+``` c++
+#include <stdio.h>
+#include <set>
+#include <algorithm>
+using namespace std;
+const int maxn=5e4+10;
+int n;
+typedef pair<int,int> seg;
+typedef pair<int,seg> cow;
+set <int> s;
+set <int> ::iterator lb,ub;
+cow bak[maxn];
+int ans;
+int main()
+{
+    scanf("%d",&n);
+    for(int i=1;i<=n;i++)
+    {
+        static int x,y,z;
+        scanf("%d%d%d",&x,&y,&z);
+        x*=-z;
+        bak[i].first=y;
+        bak[i].second.first=x-z;
+        bak[i].second.second=x;
+        s.insert(x-z-1);
+        s.insert(x-z);
+        s.insert(x-z+1);
+        s.insert(x-1);
+        s.insert(x);
+        s.insert(x+1);
+    }
+    sort(bak+1,bak+n+1);
+    for(int i=1;i<=n;i++)
+    {
+        lb=s.lower_bound(bak[i].second.first);
+        ub=s.lower_bound(bak[i].second.second);
+        if(lb!=ub)
+            ++ans,s.erase(lb,ub);
+    }
+    printf("%d\n",ans);
+}
+```
+
+# 2924 Cow Routing
+
+[题目链接](https://oj.jdfz.com.cn/oldoj/problem.php?id=2924)
+
+## Description
+
+第一行 s，t，m表示：起点，终点，m条航线。
+
+然后m组，每组第一行len，n表示这条航线的代价， 
+
+这类似于公交车，只要用了就花这些钱，但是用多少都这些钱。 
+
+注意是单向边。
+
+举例： 
+
+2333 4 
+
+3 2 1 4 
+
+就是3->2、3->1、3->4、2->1、2->4、1->4都花2333元。
+
+这个花销是第一键值。 
+
+第二键值是经过几站。
+
+比如3->2->1->4花费2333 
+
+而如果有其它航线使得3->5->4花费1000+1333==2333的话， 
+
+那么因为它经过了2站，所以更优。
+
+然后求双键值最短路。 
+
+输出这俩键值。
+
+无解输出“-1 -1”。
+
+## Solution
+
+双键值最短路
+
+跟dp没什么区别
+
+``` c++
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <algorithm>
+using namespace std;
+ 
+char getc()
+{
+    static const int LEN = 1<<15;
+    static char buf[LEN],*S=buf,*T=buf;
+    if(S == T)
+    {
+        T = (S=buf)+fread(buf,1,LEN,stdin);
+        if(S == T)return EOF;
+    }
+    return *S++;
+}
+ 
+int  read()
+{
+    static char ch;
+    static int   D;
+    while(!isdigit(ch=getc()));
+    for(D=ch-'0'; isdigit(ch=getc());)
+        D=(D<<3)+(D<<1)+(ch-'0');
+    return D;
+}
+ 
+const int maxn=1010;
+typedef long long ll;
+ll map[maxn][maxn];
+int dis[maxn][maxn];
+int s,t,m;
+int id[maxn];
+int to[maxn];
+int cnt;
+ 
+ll f[maxn];
+int d[maxn];
+bool v[maxn];
+void dijkstra()
+{
+    memset(f,0x3f,sizeof(f));
+    memset(d,0x3f,sizeof(d));
+    f[s]=0;
+    d[s]=0;
+    for(int a=1;a<cnt;a++)
+    {
+        int x=0;
+        for(int i=1;i<=cnt;i++)
+            if(!v[i]&&(f[x]>f[i]||(f[x]==f[i]&&d[x]>d[i])))
+                x=i;
+        v[x]=true;
+        for(int i=1;i<=cnt;i++)
+            if(!v[i])
+            {
+                if(f[i]==f[x]+map[x][i]&&d[i]>d[x]+dis[x][i])
+                    d[i]=d[x]+dis[x][i];
+                if(f[i]>f[x]+map[x][i])
+                    f[i]=f[x]+map[x][i],d[i]=d[x]+dis[x][i];
+            }
+    }
+}
+ 
+int main()
+{
+     
+    memset(map,0x3f,sizeof(map));
+    memset(dis,0x3f,sizeof(dis));
+    s=read();
+    t=read();
+    m=read();
+    if(s==t)
+        return puts("0 1"),0;
+    s=id[s]=++cnt;
+    t=id[t]=++cnt;
+    for(int i=1;i<=m;i++)
+    {
+        static int c,l;
+        c=read();
+        l=read();
+        for(int j=1;j<=l;j++)
+        {
+            to[j]=read();
+            if(!id[to[j]])
+                id[to[j]]=++cnt;
+            to[j]=id[to[j]];
+        }
+        for(int j=1;j<=l;j++)
+            for(int k=j+1;k<=l;k++)
+            {
+                if(map[to[j]][to[k]]==c)
+                    if(dis[to[j]][to[k]]>k-j)
+                        dis[to[j]][to[k]]=k-j;
+                if(map[to[j]][to[k]]>c)
+                    map[to[j]][to[k]]=c,dis[to[j]][to[k]]=k-j;
+            }
+    }
+    for(int i=1;i<=cnt;i++)
+        map[i][i]=dis[i][i]=0;
+ 
+    dijkstra();
+ 
+    if(f[t]==0x3f3f3f3f3f3f3f3fll)
+        puts("-1 -1");
+    else
+        printf("%lld %d\n",f[t],d[t]);
+}
+```
+
+# 2925 Meeting Time
+
+[题目链接](https://oj.jdfz.com.cn/oldoj/problem.php?id=2925)
+
+## Description
+
+给定一张拓扑图，每条边有两个边权，求两条**1到n的**路径，第一条用边权1，第二条用边权2，要求两条路径长度相等且最短
+
+## Solution
+
+拓扑图DP
+
+受了考试的影响上bitset
+
+比18357的内存小一半,速度快10倍+
+
+``` c++
+#include <stdio.h>
+#include <algorithm>
+#include <bitset>
+#include <queue>
+using namespace std;
+const int maxn=110;
+const int maxm=maxn*maxn;
+int n,m;
+int to[maxm];
+int next[maxm];
+int len1[maxm];
+int len2[maxm];
+int head[maxn];
+int dg[maxn];
+int tot;
+void add(int x,int y,int a,int b)
+{
+    to[++tot]=y;
+    ++dg[y];
+    next[tot]=head[x];
+    len1[tot]=a;
+    len2[tot]=b;
+    head[x]=tot;
+}
+bitset <10001> b[101],e[101];
+queue <int> q;
+int main()
+{
+    scanf("%d%d",&n,&m);
+    for(int i=1;i<=m;i++)
+    {
+        static int x,y,a,b;
+        scanf("%d%d%d%d",&x,&y,&a,&b);
+        add(x,y,a,b);
+    }
+    for(int i=1;i<=n;i++)
+        if(!dg[i])
+            q.push(i);
+    b[1][0]=e[1][0]=true;
+    while(!q.empty())
+    {
+        int x=q.front();
+        q.pop();
+        for(int i=head[x];i;i=next[i])
+        {
+            --dg[to[i]];
+            b[to[i]]|=b[x]<<len1[i];
+            e[to[i]]|=e[x]<<len2[i];
+            if(!dg[to[i]])
+                q.push(to[i]);
+        }
+    }
+    for(int i=1;i<=10000;i++)
+        if(b[n][i]&&e[n][i])
+            return printf("%d\n",i),0;
+    puts("IMPOSSIBLE");
+}
+```
+
+# 2933 Censoring
+
+[题目链接](https://oj.jdfz.com.cn/oldoj/problem.php?id=2933)
+
+## Description
+
+有一个S串和一个T串，长度均小于1,000,000，设当前串为U串，然后从前往后枚举S串一个字符一个字符往U串里添加，若U串后缀为T，则去掉这个后缀继续流程。
+
+求精简后的串
+
+## Solution
+
+K(an)M(ao)P(ian)
+
+感觉已经没什么印象了
+
+```c++
+#include <stdio.h>
+#include <string.h>
+#include <algorithm>
+using namespace std;
+const int maxn=1e6+10;
+int next[maxn];
+char s[maxn],t[maxn];
+int pos[maxn];
+int f[maxn];
+int main()
+{
+    scanf("%s%s",s+1,t+1);
+    int len1=strlen(s+1),len2=strlen(t+1);
+    for(int i=2,j=0;i<=len2;i++)
+    {
+        while(j&&t[j+1]!=t[i])
+            j=next[j];
+        if(t[j+1]==t[i])
+            ++j;
+        next[i]=j;
+    }
+    for(int i=1,j;i<=len1;i++)
+    {
+        j=f[pos[pos[0]]];
+        while(j&&t[j+1]!=s[i])
+            j=next[j];
+        if(t[j+1]==s[i])
+            ++j;
+        if(j==len2)
+            pos[0]-=len2-1;
+        else
+            f[i]=j,pos[++pos[0]]=i;
+    }
+    for(int i=1;i<=pos[0];i++)
+        printf("%c",s[pos[i]]);
+    puts("");
+}
+```
+# 2934 Cow Hopscotch
+
+[题目链接](https://oj.jdfz.com.cn/oldoj/problem.php?id=2934)
+
+## Description
+
+就像人类喜欢跳格子游戏一样，FJ的奶牛们发明了一种新的跳格子游戏。虽然这种接近一吨的笨拙的动物玩跳格子游戏几乎总是不愉快地结束，但是这并没有阻止奶牛们在每天下午参加跳格子游戏 
+
+游戏在一个R*C的网格上进行，每个格子有一个取值在1-k之间的整数标号，奶牛开始在左上角的格子，目的是通过若干次跳跃后到达右下角的格子，当且仅当格子A和格子B满足如下条件时能从格子A跳到格子B： 
+
+1.B格子在A格子的严格右方(B的列号严格大于A的列号) 
+
+2.B格子在A格子的严格下方(B的行号严格大于A的行号) 
+
+3.B格子的标号和A格子的标号不同 
+
+请你帮助奶牛计算出从左上角的格子到右下角的格子一共有多少种不同的方案
+
+$R,C\le 100$
+
+## Solution
+
+直接$O(N^4)$DP
+
+``` c++
+#include <stdio.h>
+#include <algorithm>
+using namespace std;
+const int maxn=110;
+const int mod=1e9+7;
+int r,c,k;
+int f[maxn][maxn];
+int col[maxn][maxn];
+int main()
+{
+    scanf("%d%d%d",&r,&c,&k);
+    for(int i=1;i<=r;i++)
+        for(int j=1;j<=c;j++)
+            scanf("%d",&col[i][j]);
+    f[1][1]=1;
+    for(int i=1;i<=r;i++)
+        for(int j=1;j<=c;j++)
+            for(int a=1;a<i;a++)
+                for(int b=1;b<j;b++)
+                    if(col[a][b]!=col[i][j])
+                        f[i][j]=(f[i][j]+f[a][b])%mod;
+    printf("%d\n",f[r][c]);
+}
+```
+
+# 2935 Superbull
+
+[题目链接](https://oj.jdfz.com.cn/oldoj/problem.php?id=2935)
+
+## Description
+
+贝西和她的朋友们在参加一年一度的“犇”(足)球锦标赛。FJ的任务是让这场锦标赛尽可能地好看。一共有N支球
+
+队参加这场比赛，每支球队都有一个特有的取值在1-230-1之间的整数编号(即：所有球队编号各不相同)。“犇”
+
+锦标赛是一个淘汰赛制的比赛——每场比赛过后，FJ选择一支球队淘汰，淘汰了的球队将不能再参加比赛。锦标赛
+
+在只有一支球队留下的时候就结束了。FJ发现了一个神奇的规律：在任意一场比赛中，这场比赛的得分是参加比赛
+
+两队的编号的异或(Xor)值。例如：编号为12的队伍和编号为20的队伍之间的比赛的得分是24分，因为 12(01100) 
+
+Xor 20(10100) = 24(11000)。FJ相信比赛的得分越高，比赛就越好看，因此，他希望安排一个比赛顺序，使得所
+
+有比赛的得分和最高。请帮助FJ决定比赛的顺序
+
+## Solution
+
+大家好像都做过
+
+直接最大生成树
+
+由于是完全图,kruskal没有prim快
+
+``` c++
+#include <stdio.h>
+#include <algorithm>
+using namespace std;
+const int maxn=2010;
+struct edge
+{
+    int x,y,len;
+}e[maxn*maxn/2];
+long long ans;
+bool cmp(edge x,edge y)
+{
+    return x.len>y.len;
+}
+int n;
+int fa[maxn];
+int size[maxn];
+int a[maxn];
+int tot;
+int getfa(int x)
+{
+    if(fa[x]!=x)
+        fa[x]=getfa(fa[x]);
+    return fa[x];
+}
+void init()
+{
+    for(int i=1;i<=n;i++)
+        size[i]=1,fa[i]=i;
+}
+void kruskal()
+{
+    init();
+    for(int i=1;i<=tot;i++)
+    {
+        int x=e[i].x;
+        int y=e[i].y;
+        x=getfa(x);
+        y=getfa(y);
+        if(x==y)
+            continue;
+        ans+=e[i].len;
+        if(size[x]>size[y])
+            swap(x,y);
+        fa[x]=y;
+        size[y]+=size[x];
+    }
+}
+int main()
+{
+    scanf("%d",&n);
+    for(int i=1;i<=n;i++)
+        scanf("%d",&a[i]);
+    for(int i=1;i<=n;i++)
+        for(int j=i+1;j<=n;j++)
+        {
+            e[++tot].x=i;
+            e[tot].y=j;
+            e[tot].len=(a[i]^a[j]);
+        }
+    sort(e+1,e+tot+1,cmp);
+    kruskal();
+    printf("%lld",ans);
+}
+```
+
+# 2970 Bessie Goes Moo
+
+[题目链接](https://oj.jdfz.com.cn/oldoj/problem.php?id=2970)
+
+## Description
+
+七个变量B,E,S,I,G,O,M;使得(B+E+S+S+I+E)(G+O+E+S)(M+O+O)被7整除的方案有多少种.
+
+每个变量的取值$\le 500$
+
+## Solution
+
+第一眼是不是被这题吓住了
+
+如果直接枚举复杂度$500^7$
+
+我们枚举每个数$\mod 7$取值即可
+
+**注意取值可能有负数**
+
+``` c++
+#include <stdio.h>
+#define id(x) (x=='B'?1:x=='E'?2:x=='S'?3:x=='I'?4:x=='G'?5:x=='O'?6:7)
+char s[5];
+int n;
+int cnt[8][7];
+long long ans;
+int main()
+{
+    scanf("%d",&n);
+    for(int i=1;i<=n;i++)
+    {
+        static char s[5];
+        static int v;
+        scanf("%s%d",s,&v);
+        cnt[id(s[0])][(v%7+7)%7]++;
+    }
+    for(int B=0;B<7;B++)
+    for(int E=0;E<7;E++)
+    for(int S=0;S<7;S++)
+    for(int I=0;I<7;I++)
+    for(int G=0;G<7;G++)
+    for(int O=0;O<7;O++)
+    for(int M=0;M<7;M++)
+        if((B+E+S+S+I+E)*(G+O+E+S)*(M+O+O)%7==0)
+            ans+=cnt[1][B]*1ll*cnt[2][E]*cnt[3][S]*cnt[4][I]*cnt[5][G]*cnt[6][O]*cnt[7][M];
+    printf("%lld\n",ans);
+}
+```
+# 2971 Trapped in the Haybales
+
+[题目链接](https://oj.jdfz.com.cn/oldoj/problem.php?id=2971)
+
+## Description
+
+农夫约翰将N(1<=N<=100000)堆干草放在了一条平直的公路上。第j堆干草的大小为Sj，坐标为Pj。奶牛贝茜位于一个没有干草堆的点B。
+
+奶牛贝茜可以在路上自由移动，甚至可以走到某个干草堆上，但是不能穿过去。但是如果她朝同一个方向跑了D个单位的距离，那么她就有足够大的速度去击碎任何大小严格小于D的干草堆。当然，在这之后如果她继续朝着该方向前进，那么她的速度不会清零。
+
+约翰可以**钦定**某堆干草，并增大它的大小，他想知道他最少需要增大多少，才能把奶牛贝茜困住，或者根本不可能。
+
+## Solution
+
+其实就是模拟这个过程
+
+从Bessie被夹的区域的左边向右拓展,再从右向左扩展,并更新答案
+
+``` c++
+#include <stdio.h>
+#include <algorithm>
+using namespace std;
+const int maxn=1e5+10;
+typedef pair<int,int> bale;
+int n,b;
+bale bales[maxn];
+int ans=~0u>>1;
+int main()
+{
+    scanf("%d%d",&n,&b);
+    for(int i=1;i<=n;i++)
+        scanf("%d%d",&bales[i].second,&bales[i].first);
+    sort(bales+1,bales+n+1);
+    int pos=lower_bound(bales+1,bales+n+1,bale(b,0))-bales;
+    int j=pos;
+    for(int i=pos-1;i;i--)
+        while(j<=n&&bales[j].first<=bales[i].first+bales[i].second)
+            ans=min(ans,bales[j].first-bales[i].first-bales[j].second),j++;
+    j=pos-1;
+    for(int i=pos;i<=n;i++)
+        while(j&&bales[i].first-bales[i].second<=bales[j].first)
+            ans=min(ans,bales[i].first-bales[j].first-bales[j].second),j--;
+    if(ans==~0u>>1)
+        puts("-1");
+    else
+        printf("%d\n",max(ans,0));
+}
+ 
+```
+
+# 2972 Bessie's Birthday Buffet
+
+[题目链接](https://oj.jdfz.com.cn/oldoj/problem.php?id=2972)
+
+## Description
+
+为了庆祝贝茜的生日,FJ给她吃草的自由. N块草地,标号1到N(1<=N<=1000),草地有营养价值.当贝茜走到这个草地,可以获得等于这块草地的营养价值的能量. 每块草地最多有10条双向边,每走一条边,贝茜花费E的能量. 贝茜拿可以从任何地方出发,当她不能获得更多的能量的时候她就会停止. 然而因为贝茜挑食,她每次不会吃低于或等于上次的营养价值的草地,所以她获得的能量是严格上升的,当然她可以选择只是经过一块草地而不吃草.
+
+算出贝茜能够获得的最大能量.
+
+## Solution
+
+先做BFS处理距离
+
+之后从大能量向小能量转移,复杂度$O(N^2)$
+
+``` c++
+#include <stdio.h>
+#include <algorithm>
+#include <queue>
+#include <string.h>
+using namespace std;
+const int maxn=1010;
+const int maxm=(maxn*10)<<1;
+int n,e;
+int dis[maxn];
+struct cow
+{
+    int id,q;
+    bool operator < (const cow &s) const
+    {
+        return q>s.q;
+    }
+}c[maxn];
+ 
+int to[maxm];
+int next[maxm];
+int head[maxn];
+int tot;
+void add(int x,int y)
+{
+    to[++tot]=y;
+    next[tot]=head[x];
+    head[x]=tot;
+ 
+    to[++tot]=x;
+    next[tot]=head[y];
+    head[y]=tot;
+}
+ 
+queue <int> q;
+int f[maxn];
+int ans;
+void bfs()
+{
+    int k,i,t,S;
+    for(k=1;k<=n;k++)
+    {
+        S=c[k].id;
+        memset(dis,-1,sizeof(int)*(n+2));
+        q.push(S);
+        dis[S]=0;
+        while(!q.empty())
+        {
+            static int x;
+            x=q.front();
+            q.pop();
+            for(int i=head[x];i;i=next[i])
+                if(dis[to[i]]<0)
+                    dis[to[i]]=dis[x]+1,q.push(to[i]);
+        }
+        t=c[k].q;
+        for(i=1;i<=n;i++)
+            if(dis[i]!=-1)
+                t=max(t,c[k].q+f[i]-e*dis[i]);
+        f[S]=t;
+        ans=max(ans,t);
+    }
+}
+int main()
+{
+ 
+    scanf("%d%d",&n,&e);
+    for(int i=1;i<=n;i++)
+    {
+        static int d;
+        c[i].id=i;
+        scanf("%d%d",&c[i].q,&d);
+        while(d--)
+        {
+            static int x;
+            scanf("%d",&x);
+            add(i,x);
+        }
+    }
+    sort(c+1,c+n+1);
+    bfs();
+    printf("%d\n",ans);
+}
+```
+

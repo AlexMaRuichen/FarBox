@@ -1,0 +1,39 @@
+---
+title: 湘江水逝
+keywords: 
+avatar: /_image/avatar.jpg
+cover: /_image/cover.jpg
+posts_per_page: 
+post_content_type: markdown
+post_paragraph_indent: no
+file_path: /
+show_toc: no
+mathjax: yes
+disqus: 
+duoshuo: 
+template_priority: self
+template_inherit: yes
+template_clone_allowed: yes
+autoreload: auto
+post_url_format: normal
+scripts_per_page: 
+scripts_for_doc: 
+domain: alexma.farbox.com
+domains:
+- alexma.farbox.com
+dns: 
+auto_image: no
+comment: yes
+sync_by_3rd: no
+sync_by_3rd_public: no
+outside_links_allowed: no
+score_degree: 
+hidden_urls: 
+users:
+- guest@Guest123789
+weibo: 
+twitter: 
+instagram: 
+dribbble: 
+client_date: 1476254510518
+---
