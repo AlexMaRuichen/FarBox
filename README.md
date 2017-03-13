@@ -1,3 +1,3 @@
 # FarBox
 
-This repository is the source codes of my blog. 
+This repository saves the source codes of my blog. 
