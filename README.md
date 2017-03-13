@@ -1,3 +1,3 @@
 # FarBox
 
-This repository is used to back up my blog. 
+This repository is the source codes of my blog. 
