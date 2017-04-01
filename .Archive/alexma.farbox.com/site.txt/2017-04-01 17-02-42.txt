@@ -17,7 +17,20 @@ template_clone_allowed: yes
 autoreload: auto
 post_url_format: normal
 scripts_per_page: |
-  <script type="text/javascript" src="//ra.revolvermaps.com/0/0/6.js?i=0tbu6ubtbn6&amp;m=1&amp;c=ff0000&amp;cr1=ffffff&amp;f=courier_new&amp;l=0" async="async"></script>
+  <script>
+  (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      if (curProtocol === 'https') {
+          bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+      }
+      else {
+          bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+      }
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+  })();
+  </script>
 scripts_for_doc: 
 domain: alexma.farbox.com
 domains:
@@ -31,10 +44,10 @@ outside_links_allowed: no
 score_degree: 0.5
 hidden_urls: 
 users:
-- alexma@d669fda82b99aa31fac1d6a337f32ac4b44a954f
+- alexma@0612
 weibo: 
 twitter: 
 instagram: 
 dribbble: 
-client_date: 1490965388905
+client_date: 1479969852787
 ---
