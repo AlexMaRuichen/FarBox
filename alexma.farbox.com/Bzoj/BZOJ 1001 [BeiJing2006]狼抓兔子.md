@@ -1,5 +1,5 @@
 Title         : Welcome
-Author        : Alexmahttps://github.com/alexmaruichen/FarBox/tree/master/alexma.farbox.com/Bzoj
+Author        : Alexma 
 Logo          : True
 
 [TITLE]
